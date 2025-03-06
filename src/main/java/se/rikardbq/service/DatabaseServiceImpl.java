@@ -1,24 +1,29 @@
 package se.rikardbq.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Component;
-import se.rikardbq.SomeDataClass;
 import se.rikardbq.connector.Connector;
+import se.rikardbq.util.Env;
 
 import java.util.List;
-import java.util.Objects;
 
 @Component
-public class DatabaseServiceImpl implements DatabaseService<SomeDataClass> {
-    private static final String DB_BASE_PATH = Objects.requireNonNullElse(System.getenv("DB_BASE_PATH"), "http://localhost:8080");
-    private static final String DB_NAME = Objects.requireNonNullElse(System.getenv("DB_NAME"), "TEST");
-    private static final String DB_USERNAME = Objects.requireNonNullElse(System.getenv("DB_USERNAME"), "TEST");
-    private static final String DB_PASSWORD = Objects.requireNonNullElse(System.getenv("DB_PASSWORD"), "TEST");
+public class DatabaseServiceImpl implements DatabaseService {
 
-    private Connector connector = new Connector(DB_BASE_PATH, DB_NAME, DB_USERNAME, DB_PASSWORD);
+    private final Connector connector = new Connector(
+            Env.DB_BASE_PATH,
+            Env.DB_NAME,
+            Env.DB_USERNAME,
+            Env.DB_PASSWORD
+    );
 
     @Override
-    public List<SomeDataClass> getData() {
+    public <T> List<T> query(Class<T> typeClass, String query, Object... parts) throws JsonProcessingException {
+        return connector.query(typeClass, query, parts);
+    }
 
-        return List.of();
+    @Override
+    public long mutate(String query, Object... parts) throws JsonProcessingException {
+        return connector.mutate(query, parts);
     }
 }
