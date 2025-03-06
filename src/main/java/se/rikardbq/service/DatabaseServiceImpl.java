@@ -16,7 +16,6 @@ public class DatabaseServiceImpl implements DatabaseService<SomeDataClass> {
 
     private Connector connector = new Connector(DB_BASE_PATH, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
-
     @Override
     public List<SomeDataClass> getData() {
 
