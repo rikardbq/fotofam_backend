@@ -6,16 +6,15 @@ import se.rikardbq.connector.Migrator;
 import se.rikardbq.util.Env;
 
 import java.util.List;
-import java.util.Objects;
 
 class ApplicationStartup {
 
     static void executeMigrations(ApplicationArguments args) throws Exception {
         if (
-                !Objects.equals(Env.DB_BASE_PATH, "unset")
-                        && !Objects.equals(Env.DB_NAME, "unset")
-                        && !Objects.equals(Env.DB_USERNAME, "unset")
-                        && !Objects.equals(Env.DB_PASSWORD, "unset")
+                !Env.isUnset(Env.DB_BASE_PATH)
+                        && !Env.isUnset(Env.DB_NAME)
+                        && !Env.isUnset(Env.DB_USERNAME)
+                        && !Env.isUnset(Env.DB_PASSWORD)
         ) {
             Connector connector = new Connector(
                     Env.DB_BASE_PATH,

@@ -1,12 +1,14 @@
 package se.rikardbq.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import se.rikardbq.exception.MyCustomException;
 
 import java.util.List;
 
 public interface ImageService<SomeDataClass> {
 
-    List<SomeDataClass> getImages() throws JsonProcessingException;
+    List<SomeDataClass> getImages() throws MyCustomException;
 
-    SomeDataClass getImage(int id) throws JsonProcessingException;
+    SomeDataClass getImageById(int id) throws MyCustomException;
+
+    SomeDataClass getImageBySlug(String slug) throws MyCustomException;
 }
