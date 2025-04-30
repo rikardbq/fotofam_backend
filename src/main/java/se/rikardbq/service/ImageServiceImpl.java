@@ -2,29 +2,53 @@ package se.rikardbq.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import se.rikardbq.SomeDataClass;
-import se.rikardbq.exception.MyCustomException;
+import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.models.Image;
+import se.rikardbq.models.MutationResponse;
+import se.rikardbq.models.image.UploadImageRequest;
 
+import java.time.Instant;
 import java.util.List;
 
 @Component
-public class ImageServiceImpl implements ImageService<SomeDataClass> {
+public class ImageServiceImpl implements ImageService<Image> {
 
     @Autowired
-    DatabaseServiceImpl databaseService;
+    DatabaseService databaseService;
 
     @Override
-    public List<SomeDataClass> getImages() throws MyCustomException {
-        return databaseService.query(SomeDataClass.class, "SELECT * FROM testing_table;");
+    public List<Image> getImages() throws SerfConnectorException {
+        return databaseService.query(Image.class, "SELECT * FROM images WHERE id = ?;", 23);
     }
 
     @Override
-    public SomeDataClass getImageById(int id) throws MyCustomException {
-        return databaseService.query(SomeDataClass.class, "SELECT * FROM testing_table WHERE id = ?;", id).getFirst();
+    public Image getImageById(int id) throws SerfConnectorException {
+        return databaseService.query(Image.class, "SELECT * FROM images WHERE id = ?;", id).getFirst();
     }
 
     @Override
-    public SomeDataClass getImageBySlug(String slug) throws MyCustomException {
-        return databaseService.query(SomeDataClass.class, "SELECT * FROM testing_table WHERE slug = ?;", slug).getFirst();
+    public Image getImageBySlug(String slug) throws SerfConnectorException {
+        return databaseService.query(Image.class, "SELECT * FROM images WHERE slug = ?;", slug).getFirst();
+    }
+
+    @Override
+    public long insertImage(byte[] file) throws SerfConnectorException {
+        MutationResponse response = databaseService.mutate("INSERT INTO images(file, path, slug) VALUES(?, ?, ?);", file, Instant.now().toString(), Instant.now().toEpochMilli());
+
+        return response.getLastInsertRowId();
+    }
+
+    @Override
+    public long insertImage(String file) throws SerfConnectorException {
+        MutationResponse response = databaseService.mutate("INSERT INTO images(file_str, path, slug) VALUES(?, ?, ?);", file, Instant.now().toString(), Instant.now().toEpochMilli());
+
+        return response.getLastInsertRowId();
+    }
+
+    @Override
+    public long insertImage(UploadImageRequest imageRequest) throws SerfConnectorException {
+        MutationResponse response = databaseService.mutate("INSERT INTO images(file_str, path, slug) VALUES(?, ?, ?);", imageRequest.getImgB64(), imageRequest.getMetadata().getName(), imageRequest.getMetadata().getSlug());
+
+        return response.getLastInsertRowId();
     }
 }

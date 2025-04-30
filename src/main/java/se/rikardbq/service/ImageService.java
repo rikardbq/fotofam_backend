@@ -1,14 +1,22 @@
 package se.rikardbq.service;
 
-import se.rikardbq.exception.MyCustomException;
+import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.models.image.Metadata;
+import se.rikardbq.models.image.UploadImageRequest;
 
 import java.util.List;
 
-public interface ImageService<SomeDataClass> {
+public interface ImageService<Image> {
 
-    List<SomeDataClass> getImages() throws MyCustomException;
+    List<Image> getImages() throws SerfConnectorException;
 
-    SomeDataClass getImageById(int id) throws MyCustomException;
+    Image getImageById(int id) throws SerfConnectorException;
 
-    SomeDataClass getImageBySlug(String slug) throws MyCustomException;
+    Image getImageBySlug(String slug) throws SerfConnectorException;
+
+    long insertImage(byte[] file) throws SerfConnectorException;
+
+    long insertImage(String file) throws SerfConnectorException;
+
+    long insertImage(UploadImageRequest imageRequest) throws SerfConnectorException;
 }

@@ -1,12 +1,14 @@
 package se.rikardbq.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.springframework.stereotype.Component;
 import se.rikardbq.connector.Connector;
-import se.rikardbq.exception.MyCustomException;
-import se.rikardbq.exception.TokenPayloadErrorException;
+import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.exception.ProtoPackageErrorException;
+import se.rikardbq.models.MutationResponse;
 import se.rikardbq.util.Env;
 
+import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -20,22 +22,22 @@ public class DatabaseServiceImpl implements DatabaseService {
     );
 
     @Override
-    public <T> List<T> query(Class<T> valueType, String query, Object... parts) throws MyCustomException {
+    public <T> List<T> query(Class<T> valueType, String query, Object... parts) throws SerfConnectorException {
         // handle potential exceptions and re-throw as domain specific error exceptions
         try {
             return connector.query(valueType, query, parts);
-        } catch (JsonProcessingException | TokenPayloadErrorException e) {
-            throw new MyCustomException(e.getMessage());
+        } catch (ProtoPackageErrorException | IOException e) {
+            throw new SerfConnectorException(e);
         }
     }
 
     @Override
-    public long mutate(String query, Object... parts) throws MyCustomException {
+    public MutationResponse mutate(String query, Object... parts) throws SerfConnectorException {
         // handle potential exceptions and re-throw as domain specific error exceptions
         try {
             return connector.mutate(query, parts);
-        } catch (JsonProcessingException | TokenPayloadErrorException e) {
-            throw new MyCustomException(e.getMessage());
+        } catch (ProtoPackageErrorException | InvalidProtocolBufferException e) {
+            throw new SerfConnectorException(e);
         }
     }
 }
