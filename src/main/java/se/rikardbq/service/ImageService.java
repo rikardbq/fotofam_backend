@@ -1,7 +1,6 @@
 package se.rikardbq.service;
 
 import se.rikardbq.exception.SerfConnectorException;
-import se.rikardbq.models.image.Metadata;
 import se.rikardbq.models.image.UploadImageRequest;
 
 import java.util.List;
@@ -10,13 +9,9 @@ public interface ImageService<Image> {
 
     List<Image> getImages() throws SerfConnectorException;
 
-    Image getImageById(int id) throws SerfConnectorException;
+    List<Image> getImagesWithParams(int limit, int offset) throws SerfConnectorException;
 
-    Image getImageBySlug(String slug) throws SerfConnectorException;
-
-    long insertImage(byte[] file) throws SerfConnectorException;
-
-    long insertImage(String file) throws SerfConnectorException;
+    List<Image> getImagesForUserWithParams(String username, int limit, int offset) throws SerfConnectorException;
 
     long insertImage(UploadImageRequest imageRequest) throws SerfConnectorException;
 }

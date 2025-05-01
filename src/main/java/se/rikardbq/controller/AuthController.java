@@ -4,40 +4,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Image;
+import se.rikardbq.models.auth.AuthResponse;
+import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.image.UploadImageRequest;
 import se.rikardbq.service.ImageService;
 
-import java.util.List;
-import java.util.Objects;
-
 @RestController
-public class ImageController {
+public class AuthController {
 
     @Autowired
     private ImageService<Image> imageService;
 
-    @GetMapping("/images")
-    public ResponseEntity<List<Image>> getImages(
-            @RequestParam(name = "limit", required = false) Integer limit,
-            @RequestParam(name = "offset", required = false) Integer offset
-    ) {
+
+    // authenticate, i.e send login credentials. Receive a signed access-token (signed with client-application-id + server secret and username)
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest authRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            List<Image> images;
-            if (Objects.isNull(limit) || Objects.isNull(offset)) {
-                images = imageService.getImages();
-            } else {
-                images = imageService.getImagesWithParams(limit, offset);
-            }
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(images);
+                    .body(new AuthResponse("some_token_123"));
+        } catch (SerfConnectorException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // authorize, accept access-token and verify token as originating from self. i.e signed with client-application-id + server secret and username
+    @PostMapping("/authorize")
+    public ResponseEntity<AuthResponse> authorize(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+
+            // check token and if OK return OK with refresh token with lifespan of 30 days
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(new AuthResponse("refresh token with lifetime 30d"));
         } catch (SerfConnectorException e) {
             throw new RuntimeException(e);
         }

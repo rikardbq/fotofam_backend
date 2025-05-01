@@ -18,31 +18,17 @@ public class ImageServiceImpl implements ImageService<Image> {
 
     @Override
     public List<Image> getImages() throws SerfConnectorException {
-        return databaseService.query(Image.class, "SELECT * FROM images WHERE id = ?;", 23);
+        return databaseService.query(Image.class, "SELECT * FROM images;");
     }
 
     @Override
-    public Image getImageById(int id) throws SerfConnectorException {
-        return databaseService.query(Image.class, "SELECT * FROM images WHERE id = ?;", id).getFirst();
+    public List<Image> getImagesWithParams(int limit, int offset) throws SerfConnectorException {
+        return databaseService.query(Image.class, "SELECT * FROM images LIMIT ? OFFSET ?;", limit, offset);
     }
 
     @Override
-    public Image getImageBySlug(String slug) throws SerfConnectorException {
-        return databaseService.query(Image.class, "SELECT * FROM images WHERE slug = ?;", slug).getFirst();
-    }
-
-    @Override
-    public long insertImage(byte[] file) throws SerfConnectorException {
-        MutationResponse response = databaseService.mutate("INSERT INTO images(file, path, slug) VALUES(?, ?, ?);", file, Instant.now().toString(), Instant.now().toEpochMilli());
-
-        return response.getLastInsertRowId();
-    }
-
-    @Override
-    public long insertImage(String file) throws SerfConnectorException {
-        MutationResponse response = databaseService.mutate("INSERT INTO images(file_str, path, slug) VALUES(?, ?, ?);", file, Instant.now().toString(), Instant.now().toEpochMilli());
-
-        return response.getLastInsertRowId();
+    public List<Image> getImagesForUserWithParams(String username, int limit, int offset) throws SerfConnectorException {
+        return databaseService.query(Image.class, "SELECT * FROM images WHERE username = ? LIMIT ? OFFSET ?;", username, limit, offset);
     }
 
     @Override
@@ -52,3 +38,10 @@ public class ImageServiceImpl implements ImageService<Image> {
         return response.getLastInsertRowId();
     }
 }
+
+
+
+/*
+SELECT posts.title, posts.username, posts.description, images.b64uri, images.width, images.height FROM posts p WHERE p.username = ? LEFT JOIN images i ON i.username = p.username LIMIT ? OFFSET ?;
+SELECT * FROM images i WHERE i.username = ? RIGHT JOIN users u ON u.username = i.username LIMIT ? OFFSET ?;
+ */

@@ -1,5 +1,6 @@
 package se.rikardbq.controller;
 
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,13 +15,13 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-public class ImageController {
+public class PostController {
 
     @Autowired
     private ImageService<Image> imageService;
 
-    @GetMapping("/images")
-    public ResponseEntity<List<Image>> getImages(
+    @GetMapping("/posts")
+    public ResponseEntity<List<Image>> getPosts(
             @RequestParam(name = "limit", required = false) Integer limit,
             @RequestParam(name = "offset", required = false) Integer offset
     ) {
@@ -43,8 +44,24 @@ public class ImageController {
         }
     }
 
-    @PostMapping("/images")
-    public ResponseEntity<Long> uploadImage(@RequestBody UploadImageRequest uploadImageRequest) {
+    @GetMapping("/posts/{id}")
+    public ResponseEntity<List<Image>> getPostWithId(@PathParam("id") Integer id) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            List<Image> images = imageService.getImages();
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(images);
+        } catch (SerfConnectorException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/posts")
+    public ResponseEntity<Long> createPost(@RequestBody UploadImageRequest uploadImageRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -58,41 +75,4 @@ public class ImageController {
             throw new RuntimeException(e);
         }
     }
-
-    // use this for get mappings
-//    @GetMapping("/images")
-//    public void getImages(HttpServletResponse response) {
-//        response.setContentType("application/json");
-//
-//        List<Image> images = imageService.getImages();
-//        try (
-//                ServletOutputStream outputStream = response.getOutputStream();
-//                PrintWriter writer = new PrintWriter(outputStream)
-//        ) {
-//            writer.println();
-//            response.setStatus(HttpStatus.OK.value());
-//            response.flushBuffer();
-//        } catch (IOException e) {
-//            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-//        }
-//    }
-
-// streaming response, could be good for loading video entries. I.E buffer stream parts
-// use for streaming getMapping
-//    @PostMapping("/images_3")
-//    public ResponseEntity<StreamingResponseBody> uploadImage3(@RequestBody byte[] uploadImageRequest) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.IMAGE_JPEG);
-//        StreamingResponseBody stream = outputStream -> {
-//            try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
-//                writer.println(Arrays.toString(uploadImageRequest));
-//
-//                writer.flush(); // Ensure all data is sent
-//            }
-//        };
-//
-//        return ResponseEntity.ok()
-//                .headers(headers)
-//                .body(stream);
-//    }
 }
