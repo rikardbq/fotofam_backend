@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.models.User;
 import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.auth.AuthResponse;
 import se.rikardbq.service.AuthService;
+import se.rikardbq.service.UserService;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
@@ -29,9 +31,11 @@ public class AuthController {
 
     @Autowired
     private AuthService<DecodedJWT> authService;
+    @Autowired
+    private UserService<User> userService;
 
     // SERVER_SECRET is ENV VAR that is generated on the server
-    // authenticate, i.e send login credentials. Receive a signed access-token (signed with client-application-id + server secret and username)
+    // authenticate, i.e send login credentials. Receive a signed access-token (signed with server secret)
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticate(@RequestHeader Map<String, String> requestHeaders, @RequestBody AuthRequest authRequest) {
         HttpHeaders headers = new HttpHeaders();
@@ -49,7 +53,14 @@ public class AuthController {
             if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
-            // BEFORE creating accessToken check the USER PW and existence in DB
+
+            User user = userService.getUserWithId(123); // change to username at some point
+            // hash the incoming password and compare to user from DB hashed pass
+            String hashedPW = authRequest.getPassword();
+            if (!Objects.equals(user.getPassword(), hashedPW)) {
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
