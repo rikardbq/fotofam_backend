@@ -1,69 +1,44 @@
 package se.rikardbq.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Autowired;
+import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.models.dao.TokenDao;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 
-public class TokenServiceImpl implements TokenService {
-    private static final String ISSUER_ID = "FFBE-X-FFFE";
+public class TokenServiceImpl implements TokenService<TokenDao> {
 
     @Autowired
     DatabaseService databaseService;
 
     @Override
-    public boolean saveToken(String username, String token) {
+    public void saveToken(String username, String token) throws SerfConnectorException {
+        long now = Instant.now().getEpochSecond();
 
-        // do some saving to DB
-        return true;
+        databaseService.mutate("""
+                INSERT INTO token_store(username, rt, created_at, updated_at) VALUES(?, ?, ?, ?)
+                ON CONFLICT(username) DO UPDATE SET rt = excluded.rt, updated_at = excluded.updated_at
+                WHERE excluded.username = username;
+                """, username, token, now, now);
     }
 
     @Override
-    public boolean updateToken(String username, String token) {
+    public void updateToken(String username, String token) throws SerfConnectorException {
+        long now = Instant.now().getEpochSecond();
 
-        // do some upsert to DB
-        return true;
+        databaseService.mutate("""
+                UPDATE token_store
+                SET rt = ?, updated_at = ?
+                WHERE username = ?;
+                """, token, now, username);
     }
 
     @Override
-    public boolean checkToken(String username, String token) {
-
-        // do some check on the DB variant of the token
-        return true;
+    public List<TokenDao> getToken(String username, String token) {
+        return databaseService.query(TokenDao.class, "SELECT * FROM token_store WHERE username = ? and rt = ?;", username, token);
     }
 
-    @Override
-    public DecodedJWT decodeToken(String token, Type type, String secret) throws JWTVerificationException {
-        Algorithm algorithm = Algorithm.HMAC256(secret);
-        JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(ISSUER_ID)
-                .withSubject(type.name())
-                .build();
-
-        return verifier.verify(token);
-    }
-
-    @Override
-    public String encodeToken(Type type, String username, String applicationId, String secret) throws JWTCreationException {
-        Algorithm algorithm = Algorithm.HMAC256(secret);
-        Instant now = Instant.now();
-        Instant exp = type == Type.RT ? now.plus(30, ChronoUnit.DAYS) : now.plusSeconds(30);
-
-        return JWT.create()
-                .withIssuer(ISSUER_ID)
-                .withSubject(type.name())
-                .withIssuedAt(now)
-                .withExpiresAt(exp)
-                .withClaim("x-uname", username)
-                .withClaim("x-aid", applicationId)
-                .sign(algorithm);
-    }
 
 //    private JWTCreator.Builder applyClaims(JWTCreator.Builder jwtBuilder, Map<String, Map<String, Object>> claims) {
 //        Set<Map.Entry<String, Map<String, Object>>> claimsSet = claims.entrySet();
@@ -75,11 +50,6 @@ public class TokenServiceImpl implements TokenService {
 //
 //        return jwtBuilder;
 //    }
-
-    public enum Type {
-        AT,
-        RT
-    }
 //    public static void main(String[] args) {
 //
 //        TokenServiceImpl tokenService = new TokenServiceImpl();
