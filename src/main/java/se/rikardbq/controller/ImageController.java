@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Image;
 import se.rikardbq.models.image.UploadImageRequest;
-import se.rikardbq.service.ImageService;
+import se.rikardbq.service.IImageService;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +17,7 @@ import java.util.Objects;
 public class ImageController {
 
     @Autowired
-    private ImageService<Image> imageService;
+    private IImageService<Image> imageService;
 
     @GetMapping("/images")
     public ResponseEntity<List<Image>> getImages(

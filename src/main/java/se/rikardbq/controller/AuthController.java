@@ -16,8 +16,8 @@ import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.User;
 import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.auth.AuthResponse;
-import se.rikardbq.service.AuthService;
-import se.rikardbq.service.UserService;
+import se.rikardbq.service.IAuthService;
+import se.rikardbq.service.IUserService;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
@@ -30,9 +30,9 @@ import java.util.Objects;
 public class AuthController {
 
     @Autowired
-    private AuthService<DecodedJWT> authService;
+    private IAuthService<DecodedJWT> authService;
     @Autowired
-    private UserService<User> userService;
+    private IUserService<User> userService;
 
     // SERVER_SECRET is ENV VAR that is generated on the server
     // authenticate, i.e send login credentials. Receive a signed access-token (signed with server secret)
@@ -60,7 +60,7 @@ public class AuthController {
             if (!Objects.equals(user.getPassword(), hashedPW)) {
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            
+
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
