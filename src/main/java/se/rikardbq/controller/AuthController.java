@@ -16,8 +16,11 @@ import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.auth.AuthResponse;
 import se.rikardbq.service.AuthService;
+import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,9 +38,15 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
+            String secret = Env.getEnv("FFBE-S");
+            if (Env.isUnset(secret)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+
             // if api key is not correct unauthorized 401
             String xApiKey = requestHeaders.get("X-API-KEY");
-            if (!Objects.equals(xApiKey, "API-KEY FROM ENV VAR")) {
+            String envApiKey = Env.getEnv("FFFE-API-KEY");
+            if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             // BEFORE creating accessToken check the USER PW and existence in DB
@@ -45,7 +54,7 @@ public class AuthController {
                     Token.Type.AT,
                     authRequest.getUsername(),
                     authRequest.getApplicationId(),
-                    "SERVER_SECRET"
+                    secret
             );
 
             return ResponseEntity.ok()
@@ -63,22 +72,28 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
+            String secret = Env.getEnv("FFBE-S");
+            if (Env.isUnset(secret)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+
             // if api key is not correct unauthorized 401
             String xApiKey = requestHeaders.get("X-API-KEY");
-            if (!Objects.equals(xApiKey, "API-KEY FROM ENV VAR")) {
+            String envApiKey = Env.getEnv("FFFE-API-KEY");
+            if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             String authorization = requestHeaders.get("Authorization");
             String headerToken = authorization.split("Bearer ")[1];
-            DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.AT, "SERVER_SECRET");
+            DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.AT, secret);
 
             // if token has been decoded then the token is OK and contents can be used safely
             String username = decodedJWT.getClaim("x-uname").asString();
             String applicationId = decodedJWT.getClaim("x-aid").asString();
 
             // STORE RT IN DB BEFORE SENDING IT OFF
-            String refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, "SERVER_SECRET");
+            String refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, secret);
             authService.saveRefreshToken(username, refreshToken);
 
             return ResponseEntity.ok()
@@ -95,30 +110,50 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
+            String secret = Env.getEnv("FFBE-S");
+            if (Env.isUnset(secret)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+
             // if api key is not correct unauthorized 401
             String xApiKey = requestHeaders.get("X-API-KEY");
-            if (!Objects.equals(xApiKey, "API-KEY FROM ENV VAR")) {
+            String envApiKey = Env.getEnv("FFFE-API-KEY");
+            if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             String authorization = requestHeaders.get("Authorization");
             String headerToken = authorization.split("Bearer ")[1];
-            DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, "SERVER_SECRET");
+            DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, secret);
 
             // if token has been decoded then the token is OK and contents can be used safely
             String username = decodedJWT.getClaim("x-uname").asString();
             String applicationId = decodedJWT.getClaim("x-aid").asString();
 
-            // CHECK RT FROM DB BEFORE RE-GENERATING NEW ONE, keyed on username or the token string itself
-            // IF RT expired then respond with 403 or something and clear tokens for user.
-            // Client APP logic will handle the flow for resetting state and user login page is shown again for re-login flow
-            // FLOW = authenticate -> authorize -> login
-            String refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, "SERVER_SECRET");
+            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            // if token doesnt exist in db then return unauthorized 401
+            if (Objects.isNull(dbRefreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            String refreshToken;
+            Instant now = Instant.now();
+            // only re-refresh 1 day old refresh tokens for the DB, else just serve what's in DB
+            if (now.getEpochSecond() > decodedJWT.getIssuedAtAsInstant().plus(1, ChronoUnit.DAYS).getEpochSecond()) {
+                refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, secret);
+                authService.saveRefreshToken(username, refreshToken);
+            } else {
+                refreshToken = dbRefreshToken;
+            }
 
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new AuthResponse(refreshToken));
-        } catch (JWTVerificationException | JWTCreationException e) {
+        } catch (JWTVerificationException | JWTCreationException | SerfConnectorException e) {
+            if (e instanceof JWTVerificationException) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
             throw new RuntimeException(e);
         }
     }

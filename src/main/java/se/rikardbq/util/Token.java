@@ -23,6 +23,8 @@ public class Token {
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(ISSUER_ID)
                 .withSubject(type.name())
+                .withClaimPresence("x-aid")
+                .withClaimPresence("x-uname")
                 .build();
 
         return verifier.verify(token);

@@ -2,7 +2,6 @@ package se.rikardbq.service;
 
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.util.Token;
 
