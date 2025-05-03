@@ -12,6 +12,9 @@ public class Env {
         return Objects.equals(envValue, "unset");
     }
 
+    public static final String FFBE_S = getEnv("FFBE_S");
+    public static final String FFFE_AK = getEnv("FFFE_AK");
+
     public static final String DB_BASE_PATH = getEnv("DB_BASE_PATH");
     public static final String DB_NAME = getEnv("DB_NAME");
     public static final String DB_USERNAME = getEnv("DB_USERNAME");

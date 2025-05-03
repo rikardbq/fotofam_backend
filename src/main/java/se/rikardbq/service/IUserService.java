@@ -7,4 +7,5 @@ import java.util.List;
 public interface IUserService<User> {
     List<User> getUsers() throws SerfConnectorException;
     User getUserWithId(int id) throws SerfConnectorException;
+    User getUserWithUsername(String username) throws SerfConnectorException;
 }

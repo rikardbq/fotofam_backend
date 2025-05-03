@@ -1,8 +1,12 @@
 package se.rikardbq.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serial;
 import java.io.Serializable;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class User implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -10,6 +14,7 @@ public class User implements Serializable {
     private int id;
     private String username;
     private String password;
+    @JsonProperty("real_name")
     private String realName;
 
     public User() {}

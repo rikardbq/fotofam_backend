@@ -11,6 +11,7 @@ public class TokenDao implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private int id;
     private String username;
     @JsonProperty("rt")
     private String refreshToken;
@@ -20,6 +21,14 @@ public class TokenDao implements Serializable {
     private long updatedAt;
 
     public TokenDao() {}
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getUsername() {
         return username;

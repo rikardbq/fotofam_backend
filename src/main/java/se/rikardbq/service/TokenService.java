@@ -1,12 +1,14 @@
 package se.rikardbq.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.dao.TokenDao;
 
 import java.time.Instant;
 import java.util.List;
 
+@Component
 public class TokenService implements ITokenService<TokenDao> {
 
     @Autowired
@@ -17,7 +19,7 @@ public class TokenService implements ITokenService<TokenDao> {
         long now = Instant.now().getEpochSecond();
 
         databaseService.mutate("""
-                INSERT INTO token_store(username, rt, created_at, updated_at) VALUES(?, ?, ?, ?)
+                INSERT INTO tokens(username, rt, created_at, updated_at) VALUES(?, ?, ?, ?)
                 ON CONFLICT(username) DO UPDATE SET rt = excluded.rt, updated_at = excluded.updated_at
                 WHERE excluded.username = username;
                 """, username, token, now, now);
@@ -28,7 +30,7 @@ public class TokenService implements ITokenService<TokenDao> {
         long now = Instant.now().getEpochSecond();
 
         databaseService.mutate("""
-                UPDATE token_store
+                UPDATE tokens
                 SET rt = ?, updated_at = ?
                 WHERE username = ?;
                 """, token, now, username);
@@ -36,7 +38,7 @@ public class TokenService implements ITokenService<TokenDao> {
 
     @Override
     public List<TokenDao> getToken(String username, String token) {
-        return databaseService.query(TokenDao.class, "SELECT * FROM token_store WHERE username = ? and rt = ?;", username, token);
+        return databaseService.query(TokenDao.class, "SELECT * FROM tokens WHERE username = ? and rt = ?;", username, token);
     }
 
 

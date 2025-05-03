@@ -4,12 +4,14 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.dao.TokenDao;
 import se.rikardbq.util.Token;
 
 import java.util.List;
 
+@Component
 public class AuthService implements IAuthService<DecodedJWT> {
 
     @Autowired

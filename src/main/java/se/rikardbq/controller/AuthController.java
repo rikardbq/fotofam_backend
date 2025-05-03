@@ -19,8 +19,11 @@ import se.rikardbq.models.auth.AuthResponse;
 import se.rikardbq.service.IAuthService;
 import se.rikardbq.service.IUserService;
 import se.rikardbq.util.Env;
+import se.rikardbq.util.PasswordHasher;
 import se.rikardbq.util.Token;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -42,22 +45,22 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            String secret = Env.getEnv("FFBE-S");
+            String secret = Env.FFBE_S;
             if (Env.isUnset(secret)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
 
             // if api key is not correct unauthorized 401
-            String xApiKey = requestHeaders.get("X-API-KEY");
-            String envApiKey = Env.getEnv("FFFE-API-KEY");
-            if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
+            String xApiKey = requestHeaders.get("x-api-key");
+            System.out.println(xApiKey);
+            String envApiKey = Env.FFFE_AK;
+            if (!Objects.equals(xApiKey, envApiKey) || Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            User user = userService.getUserWithId(123); // change to username at some point
-            // hash the incoming password and compare to user from DB hashed pass
-            String hashedPW = authRequest.getPassword();
-            if (!Objects.equals(user.getPassword(), hashedPW)) {
+            User user = userService.getUserWithUsername(authRequest.getUsername());
+            String hashedPW = new PasswordHasher(authRequest.getPassword()).encode();
+            if (Objects.isNull(user) || !Objects.equals(user.getPassword(), hashedPW)) {
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
@@ -71,31 +74,30 @@ public class AuthController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new AuthResponse(accessToken));
-        } catch (SerfConnectorException e) {
+        } catch (SerfConnectorException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // authorize, accept access-token and verify token as originating from self. i.e signed with client-application-id + server secret and username
     @PostMapping("/authorize")
     public ResponseEntity<AuthResponse> authorize(@RequestHeader Map<String, String> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            String secret = Env.getEnv("FFBE-S");
+            String secret = Env.FFBE_S;
             if (Env.isUnset(secret)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
 
             // if api key is not correct unauthorized 401
-            String xApiKey = requestHeaders.get("X-API-KEY");
-            String envApiKey = Env.getEnv("FFFE-API-KEY");
+            String xApiKey = requestHeaders.get("x-api-key");
+            String envApiKey = Env.FFFE_AK;
             if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            String authorization = requestHeaders.get("Authorization");
+            String authorization = requestHeaders.get("authorization");
             String headerToken = authorization.split("Bearer ")[1];
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.AT, secret);
 
@@ -111,29 +113,34 @@ public class AuthController {
                     .headers(headers)
                     .body(new AuthResponse(refreshToken));
         } catch (JWTVerificationException | JWTCreationException | SerfConnectorException e) {
+            if (e instanceof JWTVerificationException) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
             throw new RuntimeException(e);
         }
     }
 
+    // might be unnecessary to use the entire flow to log in as this can be done in the step before
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestHeader Map<String, String> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            String secret = Env.getEnv("FFBE-S");
+            String secret = Env.FFBE_S;
             if (Env.isUnset(secret)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
 
             // if api key is not correct unauthorized 401
-            String xApiKey = requestHeaders.get("X-API-KEY");
-            String envApiKey = Env.getEnv("FFFE-API-KEY");
+            String xApiKey = requestHeaders.get("x-api-key");
+            String envApiKey = Env.FFFE_AK;
             if (!Objects.equals(xApiKey, envApiKey) && !Env.isUnset(envApiKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            String authorization = requestHeaders.get("Authorization");
+            String authorization = requestHeaders.get("authorization");
             String headerToken = authorization.split("Bearer ")[1];
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, secret);
 
