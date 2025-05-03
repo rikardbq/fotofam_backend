@@ -1,15 +1,13 @@
 package se.rikardbq.util;
 
-import org.apache.commons.codec.binary.Hex;
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 
 public class PasswordHasher {
-    String password;
     private final byte[] salt = {
             48, 50, 102, 56,
             48, 50, 55, 51,
@@ -20,6 +18,7 @@ public class PasswordHasher {
             97, 51, 54, 50,
             55, 57, 50, 97
     };
+    String password;
 
     public PasswordHasher(String password) {
         this.password = password;
@@ -29,7 +28,7 @@ public class PasswordHasher {
         KeySpec spec = new PBEKeySpec(this.password.toCharArray(), this.salt, 64576, 256);
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
 
-        return Hex.encodeHexString(factory.generateSecret(spec).getEncoded());
+        return Base64.getEncoder().encodeToString(factory.generateSecret(spec).getEncoded());
     }
 
 //    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {

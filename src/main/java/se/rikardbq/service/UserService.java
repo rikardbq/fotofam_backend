@@ -4,8 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.User;
+import se.rikardbq.util.PasswordHasher;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Objects;
 
 // check if UserDao needs to exist to manage relationships with other tables at some point
 @Component
@@ -37,5 +41,10 @@ public class UserService implements IUserService<User> {
         }
 
         return listUser.getFirst();
+    }
+
+    @Override
+    public boolean checkUserCredentialsValid(User user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        return !Objects.isNull(user) && Objects.equals(user.getPassword(), new PasswordHasher(password).encode());
     }
 }

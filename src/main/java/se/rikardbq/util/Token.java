@@ -18,10 +18,15 @@ public class Token {
         RT
     }
 
+    private static final String[] clientApplications = {
+            "FFFE"
+    };
+
     public static DecodedJWT decodeToken(String token, Token.Type type, String secret) throws JWTVerificationException {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(ISSUER_ID)
+                .withAnyOfAudience(clientApplications)
                 .withSubject(type.name())
                 .withClaimPresence("x-aid")
                 .withClaimPresence("x-uname")
@@ -37,6 +42,7 @@ public class Token {
 
         return JWT.create()
                 .withIssuer(ISSUER_ID)
+                .withAudience(applicationId)
                 .withSubject(type.name())
                 .withIssuedAt(now)
                 .withExpiresAt(exp)

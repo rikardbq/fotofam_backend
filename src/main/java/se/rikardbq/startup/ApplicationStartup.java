@@ -10,11 +10,11 @@ import java.util.List;
 class ApplicationStartup {
 
     static void executeMigrations(ApplicationArguments args) throws Exception {
-        if (
-                !Env.isUnset(Env.DB_BASE_PATH)
-                        && !Env.isUnset(Env.DB_NAME)
-                        && !Env.isUnset(Env.DB_USERNAME)
-                        && !Env.isUnset(Env.DB_PASSWORD)
+        if (!Env.isUnset(Env.FFBE_S)
+                && !Env.isUnset(Env.DB_BASE_PATH)
+                && !Env.isUnset(Env.DB_NAME)
+                && !Env.isUnset(Env.DB_USERNAME)
+                && !Env.isUnset(Env.DB_PASSWORD)
         ) {
             Connector connector = new Connector(
                     Env.DB_BASE_PATH,
@@ -30,6 +30,8 @@ class ApplicationStartup {
 
             System.out.println("IM IN");
             migrator.run(connector);
+        } else {
+            throw new Exception("One or several env vars missing", new Throwable("missing env vars"));
         }
     }
 }

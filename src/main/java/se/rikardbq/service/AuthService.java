@@ -7,9 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.dao.TokenDao;
+import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class AuthService implements IAuthService<DecodedJWT> {
@@ -18,10 +21,9 @@ public class AuthService implements IAuthService<DecodedJWT> {
     ITokenService<TokenDao> tokenService;
 
     @Override
-    public boolean saveRefreshToken(String username, String token) throws SerfConnectorException {
+    public void saveRefreshToken(String username, String token) throws SerfConnectorException {
         tokenService.saveToken(username, token);
 
-        return true;
     }
 
     @Override
@@ -49,5 +51,22 @@ public class AuthService implements IAuthService<DecodedJWT> {
     @Override
     public DecodedJWT getDecodedToken(String token, Token.Type type, String secret) throws JWTVerificationException {
         return Token.decodeToken(token, type, secret);
+    }
+
+    // add header missing exception type or something here
+    @Override
+    public String getHeaderToken(Map<String, String> requestHeaders) {
+        String authorization = requestHeaders.get("authorization");
+
+        return authorization.split("Bearer ")[1];
+    }
+
+    // add header missing exception type or something here
+    @Override
+    public boolean checkApiKeyValid(Map<String, String> requestHeaders) {
+        String xApiKey = requestHeaders.get("x-api-key");
+        String envApiKey = Env.FFFE_AK;
+
+        return !Objects.isNull(xApiKey) && !Env.isUnset(envApiKey) && Objects.equals(xApiKey, envApiKey);
     }
 }
