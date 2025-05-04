@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 
@@ -49,8 +50,8 @@ public class AuthController {
             }
 
             User user = userService.getUserWithUsername(authRequest.getUsername());
-            if (!userService.checkUserCredentialsValid(user, authRequest.getPassword())) {
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            if (Objects.isNull(user) || !userService.checkUserCredentialsValid(user, authRequest.getPassword())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             String accessToken = authService.generateToken(

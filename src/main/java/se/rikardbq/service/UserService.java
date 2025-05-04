@@ -8,6 +8,7 @@ import se.rikardbq.util.PasswordHasher;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,6 +46,18 @@ public class UserService implements IUserService<User> {
 
     @Override
     public boolean checkUserCredentialsValid(User user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        return !Objects.isNull(user) && Objects.equals(user.getPassword(), new PasswordHasher(password).encode());
+        return !Objects.isNull(user) && Objects.equals(user.getPassword(), new PasswordHasher(this.unwindPassword(password)).encode());
+    }
+
+    private String unwindPassword(String password) {
+        byte[] pwBytes = Base64.getDecoder().decode(password);
+        StringBuilder strBuilder = new StringBuilder();
+        for (int i = 0; i < pwBytes.length; i++) {
+            if (i % 2 == 0) {
+                strBuilder.append((char) pwBytes[i]);
+            }
+        }
+
+        return strBuilder.toString();
     }
 }
