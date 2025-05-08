@@ -3,6 +3,7 @@ package se.rikardbq.controller;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,8 +37,6 @@ public class AuthController {
     @Autowired
     private IUserService<User> userService;
 
-    // SERVER_SECRET is ENV VAR that is generated on the server
-    // authenticate, i.e send login credentials. Receive a signed access-token (signed with server secret)
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticate(@RequestHeader Map<String, String> requestHeaders, @RequestBody AuthRequest authRequest) {
         HttpHeaders headers = new HttpHeaders();
@@ -98,7 +96,6 @@ public class AuthController {
         }
     }
 
-    // might be unnecessary to use the entire flow to log in as this can be done in the step before
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestHeader Map<String, String> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
@@ -136,6 +133,22 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/revoke/{username}")
+    public ResponseEntity<Long> revokeUserAccess(@PathParam("username") String username) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            long affectedId = authService.removeRefreshTokenByUsername(username);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(affectedId);
+        } catch (SerfConnectorException e) {
             throw new RuntimeException(e);
         }
     }

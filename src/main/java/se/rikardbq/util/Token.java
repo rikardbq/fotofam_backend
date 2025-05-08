@@ -12,14 +12,9 @@ import java.time.temporal.ChronoUnit;
 
 public class Token {
     private static final String ISSUER_ID = "FFBE-X-FFFE";
-
-    public enum Type {
-        AT,
-        RT
-    }
-
     private static final String[] clientApplications = {
-            "FFFE"
+            "FFFE",
+            "8ad421cf-4fa7-42f1-8924-32b18a9104d1"
     };
 
     public static DecodedJWT decodeToken(String token, Token.Type type, String secret) throws JWTVerificationException {
@@ -49,5 +44,10 @@ public class Token {
                 .withClaim("x-uname", username)
                 .withClaim("x-aid", applicationId)
                 .sign(algorithm);
+    }
+
+    public enum Type {
+        AT,
+        RT
     }
 }

@@ -3,6 +3,7 @@ package se.rikardbq.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
+import se.rikardbq.models.MutationResponse;
 import se.rikardbq.models.dao.TokenDao;
 
 import java.time.Instant;
@@ -26,14 +27,10 @@ public class TokenService implements ITokenService<TokenDao> {
     }
 
     @Override
-    public void updateToken(String username, String token) throws SerfConnectorException {
-        long now = Instant.now().getEpochSecond();
+    public long removeTokenByUsername(String username) throws SerfConnectorException {
+        MutationResponse mutation = databaseService.mutate("DELETE FROM tokens WHERE username = ?;", username);
 
-        databaseService.mutate("""
-                UPDATE tokens
-                SET rt = ?, updated_at = ?
-                WHERE username = ?;
-                """, token, now, username);
+        return mutation.getRowsAffected();
     }
 
     @Override

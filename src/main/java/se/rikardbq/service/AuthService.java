@@ -27,10 +27,8 @@ public class AuthService implements IAuthService<DecodedJWT> {
     }
 
     @Override
-    public boolean updateRefreshToken(String username, String token) throws SerfConnectorException {
-        tokenService.updateToken(username, token);
-
-        return true;
+    public long removeRefreshTokenByUsername(String username) throws SerfConnectorException {
+        return tokenService.removeTokenByUsername(username);
     }
 
     @Override
