@@ -46,7 +46,7 @@ public class UserService implements IUserService<User> {
 
     @Override
     public boolean checkUserCredentialsValid(User user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        return !Objects.isNull(user) && Objects.equals(user.getPassword(), new PasswordHasher(this.unwindPassword(password)).encode());
+        return !Objects.isNull(user) && Objects.equals(user.getPassword(), PasswordHasher.getEncoder().encode(this.unwindPassword(password)));
     }
 
     private String unwindPassword(String password) {

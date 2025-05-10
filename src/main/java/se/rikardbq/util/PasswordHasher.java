@@ -8,7 +8,7 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 
 public class PasswordHasher {
-    private final byte[] salt = {
+    private static final byte[] salt = {
             48, 50, 102, 56,
             48, 50, 55, 51,
             48, 55, 51, 51,
@@ -18,21 +18,30 @@ public class PasswordHasher {
             97, 51, 54, 50,
             55, 57, 50, 97
     };
-    String password;
 
-    public PasswordHasher(String password) {
-        this.password = password;
+    public PasswordHasher() {
     }
 
-    public String encode() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        KeySpec spec = new PBEKeySpec(this.password.toCharArray(), this.salt, 64576, 256);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-
-        return Base64.getEncoder().encodeToString(factory.generateSecret(spec).getEncoded());
+    public static PasswordHasherEncoder getEncoder() {
+        return new PasswordHasherEncoder(PasswordHasher.salt);
     }
 
-//    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {
-//        PasswordHasher hasher = new PasswordHasher("rikard123");
-//        System.out.println(hasher.encode());
-//    }
+    public static PasswordHasherEncoder getEncoder(byte[] salt) {
+        return new PasswordHasherEncoder(salt);
+    }
+
+    public static class PasswordHasherEncoder {
+        private final byte[] salt;
+
+        public PasswordHasherEncoder(byte[] salt) {
+            this.salt = salt;
+        }
+
+        public String encode(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), this.salt, 131072, 256);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+
+            return Base64.getEncoder().encodeToString(factory.generateSecret(spec).getEncoded());
+        }
+    }
 }
