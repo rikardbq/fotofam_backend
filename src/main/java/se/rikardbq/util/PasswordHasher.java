@@ -22,18 +22,18 @@ public class PasswordHasher {
     public PasswordHasher() {
     }
 
-    public static PasswordHasherEncoder getEncoder() {
-        return new PasswordHasherEncoder(PasswordHasher.salt);
+    public static Encoder getEncoder() {
+        return new Encoder(PasswordHasher.salt);
     }
 
-    public static PasswordHasherEncoder getEncoder(byte[] salt) {
-        return new PasswordHasherEncoder(salt);
+    public static Encoder getEncoder(byte[] salt) {
+        return new Encoder(salt);
     }
 
-    public static class PasswordHasherEncoder {
+    public static class Encoder {
         private final byte[] salt;
 
-        public PasswordHasherEncoder(byte[] salt) {
+        public Encoder(byte[] salt) {
             this.salt = salt;
         }
 
