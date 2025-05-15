@@ -12,7 +12,7 @@ import java.time.temporal.ChronoUnit;
 
 public class Token {
     private static final String ISSUER_ID = "FFBE-X-FFFE";
-    private static final String[] clientApplications = {
+    public static final String[] clientApplications = {
             "FFFE",
             "8ad421cf-4fa7-42f1-8924-32b18a9104d1"
     };

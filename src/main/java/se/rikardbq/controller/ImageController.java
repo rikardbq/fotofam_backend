@@ -22,14 +22,14 @@ public class ImageController {
     @GetMapping("/images")
     public ResponseEntity<List<Image>> getImages(
             @RequestParam(name = "limit", required = false) Integer limit,
-            @RequestParam(name = "offset", required = false) Integer offset
+            @RequestParam(name = "offset", required = false, defaultValue = "0") Integer offset
     ) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
             List<Image> images;
-            if (Objects.isNull(limit) || Objects.isNull(offset)) {
+            if (Objects.isNull(limit)) {
                 images = imageService.getImages();
             } else {
                 images = imageService.getImagesWithParams(limit, offset);

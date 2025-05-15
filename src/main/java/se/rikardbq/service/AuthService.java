@@ -10,6 +10,7 @@ import se.rikardbq.models.dao.TokenDao;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,5 +67,12 @@ public class AuthService implements IAuthService<DecodedJWT> {
         String envApiKey = Env.FFFE_AK;
 
         return !Objects.isNull(xApiKey) && !Env.isUnset(envApiKey) && Objects.equals(xApiKey, envApiKey);
+    }
+
+    @Override
+    public boolean checkOriginValid(Map<String, String> requestHeaders) {
+        String origin = requestHeaders.get("origin");
+
+        return Arrays.asList(Token.clientApplications).contains(origin);
     }
 }

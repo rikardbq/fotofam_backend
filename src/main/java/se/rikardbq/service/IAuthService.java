@@ -15,4 +15,5 @@ public interface IAuthService<DecodedJWT> {
     DecodedJWT getDecodedToken(String token, Token.Type type, String secret) throws JWTVerificationException;
     String getHeaderToken(Map<String, String> requestHeaders);
     boolean checkApiKeyValid(Map<String, String> requestHeaders);
+    boolean checkOriginValid(Map<String, String> requestHeaders);
 }

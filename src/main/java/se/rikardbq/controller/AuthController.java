@@ -3,16 +3,12 @@ package se.rikardbq.controller;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.User;
 import se.rikardbq.models.auth.AuthRequest;
@@ -43,10 +39,11 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            if (!authService.checkApiKeyValid(requestHeaders)) {
+            if (!authService.checkApiKeyValid(requestHeaders) || !authService.checkOriginValid(requestHeaders)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
+            String appId = requestHeaders.get("origin");
             User user = userService.getUserWithUsername(authRequest.getUsername());
             if (Objects.isNull(user) || !userService.checkUserCredentialsValid(user, authRequest.getPassword())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -55,7 +52,7 @@ public class AuthController {
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
-                    authRequest.getApplicationId(),
+                    appId,
                     Env.FFBE_S
             );
 
@@ -73,7 +70,7 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            if (!authService.checkApiKeyValid(requestHeaders)) {
+            if (!authService.checkApiKeyValid(requestHeaders) || !authService.checkOriginValid(requestHeaders)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -102,7 +99,7 @@ public class AuthController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            if (!authService.checkApiKeyValid(requestHeaders)) {
+            if (!authService.checkApiKeyValid(requestHeaders) || !authService.checkOriginValid(requestHeaders)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -138,16 +135,20 @@ public class AuthController {
     }
 
     @PostMapping("/revoke/{username}")
-    public ResponseEntity<Long> revokeUserAccess(@PathParam("username") String username) {
+    public ResponseEntity<Long> revokeUserAccess(@RequestHeader Map<String, String> requestHeaders, @PathVariable(name = "username") String username) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            long affectedId = authService.removeRefreshTokenByUsername(username);
+            if (!authService.checkApiKeyValid(requestHeaders) || !authService.checkOriginValid(requestHeaders)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            long rowsAffected = authService.removeRefreshTokenByUsername(username);
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(affectedId);
+                    .body(rowsAffected);
         } catch (SerfConnectorException e) {
             throw new RuntimeException(e);
         }
