@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.dao.TokenDao;
+import se.rikardbq.util.Constants;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
@@ -55,7 +56,7 @@ public class AuthService implements IAuthService<DecodedJWT> {
     // add header missing exception type or something here
     @Override
     public String getHeaderToken(Map<String, String> requestHeaders) {
-        String authorization = requestHeaders.get("authorization");
+        String authorization = requestHeaders.get(Constants.Controller.Header.AUTHORIZATION);
 
         return authorization.split("Bearer ")[1];
     }
@@ -63,7 +64,7 @@ public class AuthService implements IAuthService<DecodedJWT> {
     // add header missing exception type or something here
     @Override
     public boolean checkApiKeyValid(Map<String, String> requestHeaders) {
-        String xApiKey = requestHeaders.get("x-api-key");
+        String xApiKey = requestHeaders.get(Constants.Controller.Header.X_API_KEY);
         String envApiKey = Env.FFFE_AK;
 
         return !Objects.isNull(xApiKey) && !Env.isUnset(envApiKey) && Objects.equals(xApiKey, envApiKey);
@@ -71,7 +72,7 @@ public class AuthService implements IAuthService<DecodedJWT> {
 
     @Override
     public boolean checkOriginValid(Map<String, String> requestHeaders) {
-        String origin = requestHeaders.get("origin");
+        String origin = requestHeaders.get(Constants.Controller.Header.ORIGIN);
 
         return Arrays.asList(Token.clientApplications).contains(origin);
     }

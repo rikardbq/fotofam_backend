@@ -15,6 +15,7 @@ import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.auth.AuthResponse;
 import se.rikardbq.service.IAuthService;
 import se.rikardbq.service.IUserService;
+import se.rikardbq.util.Constants;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
@@ -33,7 +34,7 @@ public class AuthController {
     @Autowired
     private IUserService<User> userService;
 
-    @PostMapping("/authenticate")
+    @PostMapping(Constants.Controller.Path.AUTHENCTICATE)
     public ResponseEntity<AuthResponse> authenticate(@RequestHeader Map<String, String> requestHeaders, @RequestBody AuthRequest authRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -43,7 +44,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            String appId = requestHeaders.get("origin");
+            String appId = requestHeaders.get(Constants.Controller.Header.ORIGIN);
             User user = userService.getUserWithUsername(authRequest.getUsername());
             if (Objects.isNull(user) || !userService.checkUserCredentialsValid(user, authRequest.getPassword())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -64,7 +65,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/authorize")
+    @PostMapping(Constants.Controller.Path.AUTHORIZE)
     public ResponseEntity<AuthResponse> authorize(@RequestHeader Map<String, String> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -76,8 +77,8 @@ public class AuthController {
 
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.AT, Env.FFBE_S);
-            String username = decodedJWT.getClaim("x-uname").asString();
-            String applicationId = decodedJWT.getClaim("x-aid").asString();
+            String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
+            String applicationId = decodedJWT.getClaim(Constants.Token.Claim.X_AID).asString();
             String refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, Env.FFBE_S);
             authService.saveRefreshToken(username, refreshToken);
 
@@ -93,7 +94,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping(Constants.Controller.Path.LOGIN)
     public ResponseEntity<AuthResponse> login(@RequestHeader Map<String, String> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -105,7 +106,7 @@ public class AuthController {
 
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
-            String username = decodedJWT.getClaim("x-uname").asString();
+            String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
             String dbRefreshToken = authService.getRefreshToken(username, headerToken);
 
             if (Objects.isNull(dbRefreshToken)) {
@@ -115,7 +116,7 @@ public class AuthController {
             String refreshToken;
             Instant now = Instant.now();
             if (now.getEpochSecond() > decodedJWT.getIssuedAtAsInstant().plus(1, ChronoUnit.DAYS).getEpochSecond()) {
-                String applicationId = decodedJWT.getClaim("x-aid").asString();
+                String applicationId = decodedJWT.getClaim(Constants.Token.Claim.X_AID).asString();
                 refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, Env.FFBE_S);
                 authService.saveRefreshToken(username, refreshToken);
             } else {

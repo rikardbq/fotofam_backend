@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 public class Token {
-    private static final String ISSUER_ID = "FFBE-X-FFFE";
     public static final String[] clientApplications = {
             "FFFE",
             "8ad421cf-4fa7-42f1-8924-32b18a9104d1"
@@ -20,11 +19,11 @@ public class Token {
     public static DecodedJWT decodeToken(String token, Token.Type type, String secret) throws JWTVerificationException {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(ISSUER_ID)
+                .withIssuer(Constants.Token.ISSUER_ID)
                 .withAnyOfAudience(clientApplications)
                 .withSubject(type.name())
-                .withClaimPresence("x-aid")
-                .withClaimPresence("x-uname")
+                .withClaimPresence(Constants.Token.Claim.X_AID)
+                .withClaimPresence(Constants.Token.Claim.X_UNAME)
                 .build();
 
         return verifier.verify(token);
@@ -36,13 +35,13 @@ public class Token {
         Instant exp = type == Token.Type.RT ? now.plus(30, ChronoUnit.DAYS) : now.plusSeconds(30);
 
         return JWT.create()
-                .withIssuer(ISSUER_ID)
+                .withIssuer(Constants.Token.ISSUER_ID)
                 .withAudience(applicationId)
                 .withSubject(type.name())
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
-                .withClaim("x-uname", username)
-                .withClaim("x-aid", applicationId)
+                .withClaim(Constants.Token.Claim.X_UNAME, username)
+                .withClaim(Constants.Token.Claim.X_AID, applicationId)
                 .sign(algorithm);
     }
 
