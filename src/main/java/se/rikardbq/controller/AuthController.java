@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
-import se.rikardbq.models.User;
+import se.rikardbq.models.UserDao;
 import se.rikardbq.models.auth.AuthRequest;
 import se.rikardbq.models.auth.AuthResponse;
 import se.rikardbq.service.IAuthService;
@@ -32,7 +32,7 @@ public class AuthController {
     @Autowired
     private IAuthService<DecodedJWT> authService;
     @Autowired
-    private IUserService<User> userService;
+    private IUserService<UserDao> userService;
 
     @PostMapping(Constants.Controller.Path.AUTHENCTICATE)
     public ResponseEntity<AuthResponse> authenticate(@RequestHeader Map<String, String> requestHeaders, @RequestBody AuthRequest authRequest) {
@@ -45,8 +45,8 @@ public class AuthController {
             }
 
             String appId = requestHeaders.get(Constants.Controller.Header.ORIGIN);
-            User user = userService.getUserWithUsername(authRequest.getUsername());
-            if (Objects.isNull(user) || !userService.checkUserCredentialsValid(user, authRequest.getPassword())) {
+            UserDao userDao = userService.getUserWithUsername(authRequest.getUsername());
+            if (Objects.isNull(userDao) || !userService.checkUserCredentialsValid(userDao.getPassword(), authRequest.getPassword())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 

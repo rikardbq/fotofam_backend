@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Image;
-import se.rikardbq.models.image.UploadImageRequest;
 import se.rikardbq.service.IImageService;
 
 import java.util.List;
@@ -44,12 +43,12 @@ public class ImageController {
     }
 
     @PostMapping("/images")
-    public ResponseEntity<Long> uploadImage(@RequestBody UploadImageRequest uploadImageRequest) {
+    public ResponseEntity<Long> uploadImage(@RequestBody Image image) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            long lastRowId = imageService.insertImage(uploadImageRequest);
+            long lastRowId = imageService.insertImage(image);
 
             return ResponseEntity.ok()
                     .headers(headers)

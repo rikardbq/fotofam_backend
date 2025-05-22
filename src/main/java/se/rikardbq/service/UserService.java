@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.User;
+import se.rikardbq.models.UserDao;
 import se.rikardbq.util.PasswordHasher;
 
 import java.security.NoSuchAlgorithmException;
@@ -13,19 +14,19 @@ import java.util.Objects;
 
 // check if UserDao needs to exist to manage relationships with other tables at some point
 @Component
-public class UserService implements IUserService<User> {
+public class UserService implements IUserService<UserDao> {
 
     @Autowired
     IDatabaseService databaseService;
 
     @Override
-    public List<User> getUsers() throws SerfConnectorException {
-        return databaseService.query(User.class, "SELECT * FROM users;");
+    public List<UserDao> getUsers() throws SerfConnectorException {
+        return databaseService.query(UserDao.class, "SELECT * FROM users;");
     }
 
     @Override
-    public User getUserWithId(int id) throws SerfConnectorException {
-        List<User> listUser = databaseService.query(User.class, "SELECT * FROM users WHERE id = ?;", id);
+    public UserDao getUserWithId(int id) throws SerfConnectorException {
+        List<UserDao> listUser = databaseService.query(UserDao.class, "SELECT * FROM users WHERE id = ?;", id);
         if (listUser.isEmpty()) {
             return null;
         }
@@ -34,8 +35,8 @@ public class UserService implements IUserService<User> {
     }
 
     @Override
-    public User getUserWithUsername(String username) throws SerfConnectorException {
-        List<User> listUser = databaseService.query(User.class, "SELECT * FROM users WHERE username = ?;", username);
+    public UserDao getUserWithUsername(String username) throws SerfConnectorException {
+        List<UserDao> listUser = databaseService.query(UserDao.class, "SELECT * FROM users WHERE username = ?;", username);
         if (listUser.isEmpty()) {
             return null;
         }
@@ -44,7 +45,7 @@ public class UserService implements IUserService<User> {
     }
 
     @Override
-    public boolean checkUserCredentialsValid(User user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        return !Objects.isNull(user) && Objects.equals(user.getPassword(), PasswordHasher.getEncoder().encode(password));
+    public boolean checkUserCredentialsValid(String dbPassword, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        return Objects.equals(dbPassword, PasswordHasher.getEncoder().encode(password));
     }
 }

@@ -6,9 +6,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
-public interface IUserService<User> {
-    List<User> getUsers() throws SerfConnectorException;
-    User getUserWithId(int id) throws SerfConnectorException;
-    User getUserWithUsername(String username) throws SerfConnectorException;
-    boolean checkUserCredentialsValid(User user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException;
+public interface IUserService<UserDao> {
+    List<UserDao> getUsers() throws SerfConnectorException;
+
+    UserDao getUserWithId(int id) throws SerfConnectorException;
+
+    UserDao getUserWithUsername(String username) throws SerfConnectorException;
+
+    boolean checkUserCredentialsValid(String dbPassword, String password) throws NoSuchAlgorithmException, InvalidKeySpecException;
 }

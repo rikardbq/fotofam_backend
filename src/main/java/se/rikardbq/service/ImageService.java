@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Image;
 import se.rikardbq.models.MutationResponse;
-import se.rikardbq.models.image.UploadImageRequest;
 
 import java.util.List;
 
@@ -31,8 +30,8 @@ public class ImageService implements IImageService<Image> {
     }
 
     @Override
-    public long insertImage(UploadImageRequest imageRequest) throws SerfConnectorException {
-        MutationResponse response = databaseService.mutate("INSERT INTO images(file_str, path, slug) VALUES(?, ?, ?);", imageRequest.getImgB64(), imageRequest.getMetadata().getName(), imageRequest.getMetadata().getSlug());
+    public long insertImage(Image image) throws SerfConnectorException {
+        MutationResponse response = databaseService.mutate("INSERT INTO images(name, width, height, base64) VALUES(?, ?, ?, ?);", image.getName(), image.getWidth(), image.getHeight(), image.getBase64());
 
         return response.getLastInsertRowId();
     }
