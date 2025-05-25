@@ -30,6 +30,16 @@ public class ImageService implements IImageService<Image> {
     }
 
     @Override
+    public Image getImageWithName(String imageName) throws SerfConnectorException {
+        List<Image> images = databaseService.query(Image.class, "SELECT name, width, height, base64 FROM images WHERE name = ?;", imageName);
+        if (images.isEmpty()) {
+            return null;
+        }
+
+        return images.getFirst();
+    }
+
+    @Override
     public long insertImage(Image image) throws SerfConnectorException {
         MutationResponse response = databaseService.mutate("INSERT INTO images(name, width, height, base64) VALUES(?, ?, ?, ?);", image.getName(), image.getWidth(), image.getHeight(), image.getBase64());
 

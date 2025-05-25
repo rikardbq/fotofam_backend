@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Post;
-import se.rikardbq.models.User;
 import se.rikardbq.models.UserDao;
 import se.rikardbq.models.request.CreatePostRequest;
 import se.rikardbq.service.IAuthService;
@@ -34,10 +33,10 @@ public class PostController {
     @Autowired
     private IUserService<UserDao> userService;
 
-    @GetMapping("/posts/{userId}")
+    @GetMapping("/posts/{username}")
     public ResponseEntity<List<Post>> getPosts(
             @RequestHeader Map<String, String> requestHeaders,
-            @PathVariable(name = "userId", required = false) Integer userId,
+            @PathVariable(name = "username", required = false) String pathUsername,
             @RequestParam(name = "limit", required = true) Integer limit,
             @RequestParam(name = "offset", required = true) Integer offset
     ) {
@@ -53,20 +52,21 @@ public class PostController {
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
             String dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            UserDao userDao = userService.getUserWithUsername(username);
 
-            if (Objects.isNull(dbRefreshToken)) {
+            if (Objects.isNull(dbRefreshToken) || Objects.isNull(userDao)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            if (!Objects.isNull(userId) && userId != userService.getUserWithUsername(username).getId()) {
+            if (!Objects.isNull(pathUsername) && !Objects.equals(pathUsername, username)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             List<Post> posts;
-            if (Objects.isNull(userId)) {
+            if (Objects.isNull(pathUsername)) {
                 posts = postService.getPostsWithParams(limit, offset);
             } else {
-                posts = postService.getPostsForUserWithParams(userId, limit, offset);
+                posts = postService.getPostsForUserWithParams(userDao.getId(), limit, offset);
             }
 
             return ResponseEntity.ok()

@@ -11,5 +11,7 @@ public interface IImageService<Image> {
 
     List<Image> getImagesForUserWithParams(String username, int limit, int offset) throws SerfConnectorException;
 
+    Image getImageWithName(String imageName) throws SerfConnectorException;
+
     long insertImage(Image image) throws SerfConnectorException;
 }

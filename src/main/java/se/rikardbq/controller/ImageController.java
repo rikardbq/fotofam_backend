@@ -1,22 +1,68 @@
 package se.rikardbq.controller;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.models.Image;
+import se.rikardbq.models.UserDao;
+import se.rikardbq.service.IAuthService;
 import se.rikardbq.service.IImageService;
+import se.rikardbq.service.IUserService;
+import se.rikardbq.util.Constants;
+import se.rikardbq.util.Env;
+import se.rikardbq.util.Token;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
 public class ImageController {
 
     @Autowired
+    private IAuthService<DecodedJWT> authService;
+    @Autowired
+    private IUserService<UserDao> userService;
+    @Autowired
     private IImageService<Image> imageService;
+
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<Image> getPosts(
+            @RequestHeader Map<String, String> requestHeaders,
+            @PathVariable(name = "imageName", required = true) String imageName
+    ) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            if (!authService.checkApiKeyValid(requestHeaders) || !authService.checkOriginValid(requestHeaders)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            String headerToken = authService.getHeaderToken(requestHeaders);
+            DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
+            String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
+            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            UserDao userDao = userService.getUserWithUsername(username);
+
+            if (Objects.isNull(dbRefreshToken) || Objects.isNull(userDao)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            Image image = imageService.getImageWithName(imageName);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(image);
+        } catch (SerfConnectorException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @GetMapping("/images")
     public ResponseEntity<List<Image>> getImages(
