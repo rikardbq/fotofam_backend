@@ -33,12 +33,21 @@ public class PostController {
     @Autowired
     private IUserService<UserDao> userService;
 
+    @GetMapping("/posts")
+    public ResponseEntity<List<Post>> getPosts(
+            @RequestHeader Map<String, String> requestHeaders,
+            @RequestParam(name = "limit") Integer limit,
+            @RequestParam(name = "offset") Integer offset
+    ) {
+        return getPosts(requestHeaders, null, limit, offset);
+    }
+
     @GetMapping("/posts/{username}")
     public ResponseEntity<List<Post>> getPosts(
             @RequestHeader Map<String, String> requestHeaders,
-            @PathVariable(name = "username", required = false) String pathUsername,
-            @RequestParam(name = "limit", required = true) Integer limit,
-            @RequestParam(name = "offset", required = true) Integer offset
+            @PathVariable(required = false) String pathUsername,
+            @RequestParam(name = "limit") Integer limit,
+            @RequestParam(name = "offset") Integer offset
     ) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
