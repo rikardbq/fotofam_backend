@@ -53,6 +53,7 @@ public class AuthController {
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
+                    userDao.getRealName(),
                     appId,
                     Env.FFBE_S
             );
@@ -78,8 +79,9 @@ public class AuthController {
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.AT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
+            String realName = decodedJWT.getClaim(Constants.Token.Claim.X_RNAME).asString();
             String applicationId = decodedJWT.getClaim(Constants.Token.Claim.X_AID).asString();
-            String refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, Env.FFBE_S);
+            String refreshToken = authService.generateToken(Token.Type.RT, username, realName, applicationId, Env.FFBE_S);
             authService.saveRefreshToken(username, refreshToken);
 
             return ResponseEntity.ok()
@@ -107,6 +109,7 @@ public class AuthController {
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
+            String realName = decodedJWT.getClaim(Constants.Token.Claim.X_RNAME).asString();
             String dbRefreshToken = authService.getRefreshToken(username, headerToken);
 
             if (Objects.isNull(dbRefreshToken)) {
@@ -117,7 +120,7 @@ public class AuthController {
             Instant now = Instant.now();
             if (now.getEpochSecond() > decodedJWT.getIssuedAtAsInstant().plus(1, ChronoUnit.DAYS).getEpochSecond()) {
                 String applicationId = decodedJWT.getClaim(Constants.Token.Claim.X_AID).asString();
-                refreshToken = authService.generateToken(Token.Type.RT, username, applicationId, Env.FFBE_S);
+                refreshToken = authService.generateToken(Token.Type.RT, username, realName, applicationId, Env.FFBE_S);
                 authService.saveRefreshToken(username, refreshToken);
             } else {
                 refreshToken = dbRefreshToken;

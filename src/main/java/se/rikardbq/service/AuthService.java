@@ -44,8 +44,8 @@ public class AuthService implements IAuthService<DecodedJWT> {
     }
 
     @Override
-    public String generateToken(Token.Type type, String username, String applicationId, String serverSecret) throws JWTCreationException {
-        return Token.encodeToken(type, username, applicationId, serverSecret);
+    public String generateToken(Token.Type type, String username, String realName, String applicationId, String serverSecret) throws JWTCreationException {
+        return Token.encodeToken(type, username, realName, applicationId, serverSecret);
     }
 
     @Override

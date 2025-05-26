@@ -11,7 +11,7 @@ public interface IAuthService<DecodedJWT> {
     void saveRefreshToken(String username, String token) throws SerfConnectorException;
     long removeRefreshTokenByUsername(String username) throws SerfConnectorException;
     String getRefreshToken(String username, String token) throws SerfConnectorException;
-    String generateToken(Token.Type type, String username, String applicationId, String serverSecret) throws JWTCreationException;
+    String generateToken(Token.Type type, String username, String realName, String applicationId, String serverSecret) throws JWTCreationException;
     DecodedJWT getDecodedToken(String token, Token.Type type, String secret) throws JWTVerificationException;
     String getHeaderToken(Map<String, String> requestHeaders);
     boolean checkApiKeyValid(Map<String, String> requestHeaders);

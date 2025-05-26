@@ -24,12 +24,13 @@ public class Token {
                 .withSubject(type.name())
                 .withClaimPresence(Constants.Token.Claim.X_AID)
                 .withClaimPresence(Constants.Token.Claim.X_UNAME)
+                .withClaimPresence(Constants.Token.Claim.X_RNAME)
                 .build();
 
         return verifier.verify(token);
     }
 
-    public static String encodeToken(Token.Type type, String username, String applicationId, String secret) throws JWTCreationException {
+    public static String encodeToken(Token.Type type, String username, String realName, String applicationId, String secret) throws JWTCreationException {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Instant now = Instant.now();
         Instant exp = type == Token.Type.RT ? now.plus(30, ChronoUnit.DAYS) : now.plusSeconds(30);
@@ -41,6 +42,7 @@ public class Token {
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
                 .withClaim(Constants.Token.Claim.X_UNAME, username)
+                .withClaim(Constants.Token.Claim.X_RNAME, realName)
                 .withClaim(Constants.Token.Claim.X_AID, applicationId)
                 .sign(algorithm);
     }

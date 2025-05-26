@@ -20,6 +20,7 @@ public class Constants {
 
         public static class Claim {
             public static final String X_UNAME = "x-uname";
+            public static final String X_RNAME = "x-rname";
             public static final String X_AID = "x-aid";
 
         }

@@ -32,7 +32,7 @@ public class ImageController {
     private IImageService<Image> imageService;
 
     @GetMapping("/images/{imageName}")
-    public ResponseEntity<Image> getPosts(
+    public ResponseEntity<Image> getImageByName(
             @RequestHeader Map<String, String> requestHeaders,
             @PathVariable(name = "imageName", required = true) String imageName
     ) {
