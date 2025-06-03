@@ -6,11 +6,12 @@ import se.rikardbq.exception.SerfConnectorException;
 import se.rikardbq.util.Token;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface IAuthService<DecodedJWT> {
     void saveRefreshToken(String username, String token) throws SerfConnectorException;
     long removeRefreshTokenByUsername(String username) throws SerfConnectorException;
-    String getRefreshToken(String username, String token) throws SerfConnectorException;
+    Optional<String> getRefreshToken(String username, String token) throws SerfConnectorException;
     String generateToken(Token.Type type, String username, String realName, String applicationId, String serverSecret) throws JWTCreationException;
     DecodedJWT getDecodedToken(String token, Token.Type type, String secret) throws JWTVerificationException;
     String getHeaderToken(Map<String, String> requestHeaders);

@@ -11,5 +11,5 @@ public interface IPostService<CreatePostRequest, Post> {
 
     List<Post> getPostsForUserWithParams(int userId, int limit, int offset) throws SerfConnectorException;
 
-    long insertPost(CreatePostRequest createPostRequest) throws SerfConnectorException;
+    long insertPost(CreatePostRequest createPostRequest, int userId) throws SerfConnectorException;
 }

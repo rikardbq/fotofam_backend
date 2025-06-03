@@ -3,7 +3,6 @@ package se.rikardbq.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
-import se.rikardbq.models.User;
 import se.rikardbq.models.UserDao;
 import se.rikardbq.util.PasswordHasher;
 
@@ -11,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 // check if UserDao needs to exist to manage relationships with other tables at some point
 @Component
@@ -25,23 +25,23 @@ public class UserService implements IUserService<UserDao> {
     }
 
     @Override
-    public UserDao getUserWithId(int id) throws SerfConnectorException {
+    public Optional<UserDao> getUserWithId(int id) throws SerfConnectorException {
         List<UserDao> listUser = databaseService.query(UserDao.class, "SELECT * FROM users WHERE id = ?;", id);
         if (listUser.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
-        return listUser.getFirst();
+        return Optional.of(listUser.getFirst());
     }
 
     @Override
-    public UserDao getUserWithUsername(String username) throws SerfConnectorException {
+    public Optional<UserDao> getUserWithUsername(String username) throws SerfConnectorException {
         List<UserDao> listUser = databaseService.query(UserDao.class, "SELECT * FROM users WHERE username = ?;", username);
         if (listUser.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
-        return listUser.getFirst();
+        return Optional.of(listUser.getFirst());
     }
 
     @Override

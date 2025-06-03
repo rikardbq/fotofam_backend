@@ -22,6 +22,7 @@ import se.rikardbq.util.Token;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 public class PostController {
@@ -60,10 +61,10 @@ public class PostController {
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
-            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
-            UserDao userDao = userService.getUserWithUsername(username);
+            Optional<String> dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            Optional<UserDao> userDao = userService.getUserWithUsername(username);
 
-            if (Objects.isNull(dbRefreshToken) || Objects.isNull(userDao)) {
+            if (dbRefreshToken.isEmpty() || userDao.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -75,7 +76,7 @@ public class PostController {
             if (Objects.isNull(pathUsername)) {
                 posts = postService.getPostsWithParams(limit, offset);
             } else {
-                posts = postService.getPostsForUserWithParams(userDao.getId(), limit, offset);
+                posts = postService.getPostsForUserWithParams(userDao.get().getId(), limit, offset);
             }
 
             return ResponseEntity.ok()
@@ -99,13 +100,14 @@ public class PostController {
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
-            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            Optional<String> dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            Optional<UserDao> userDao = userService.getUserWithUsername(username);
 
-            if (Objects.isNull(dbRefreshToken)) {
+            if (dbRefreshToken.isEmpty() || userDao.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            long lastRowId = postService.insertPost(createPostRequest);
+            long lastRowId = postService.insertPost(createPostRequest, userDao.get().getId());
 
             return ResponseEntity.ok()
                     .headers(headers)

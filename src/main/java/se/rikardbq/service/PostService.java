@@ -44,7 +44,7 @@ public class PostService implements IPostService<CreatePostRequest, Post> {
     }
 
     @Override
-    public long insertPost(CreatePostRequest createPostRequest) throws SerfConnectorException {
+    public long insertPost(CreatePostRequest createPostRequest, int userId) throws SerfConnectorException {
         Image image = createPostRequest.getImage();
         Post post = createPostRequest.getPost();
         long now = Instant.now().getEpochSecond();
@@ -57,11 +57,11 @@ public class PostService implements IPostService<CreatePostRequest, Post> {
                 image.getWidth(),
                 image.getHeight(),
                 image.getBase64(),
-                createPostRequest.getUserId(),
+                userId,
                 now,
                 image.getName(),
                 post.getDescription(),
-                createPostRequest.getUserId(),
+                userId,
                 now
         );
 

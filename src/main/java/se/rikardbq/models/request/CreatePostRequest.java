@@ -10,21 +10,12 @@ public class CreatePostRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private int userId;
     private Post post;
     private Image image;
 
     public CreatePostRequest() {
     }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
+    
     public Post getPost() {
         return post;
     }

@@ -11,10 +11,7 @@ import se.rikardbq.util.Constants;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class AuthService implements IAuthService<DecodedJWT> {
@@ -34,13 +31,13 @@ public class AuthService implements IAuthService<DecodedJWT> {
     }
 
     @Override
-    public String getRefreshToken(String username, String token) throws SerfConnectorException {
+    public Optional<String> getRefreshToken(String username, String token) throws SerfConnectorException {
         List<TokenDao> listDao = tokenService.getToken(username, token);
         if (listDao.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
-        return listDao.getFirst().getRefreshToken();
+        return Optional.of(listDao.getFirst().getRefreshToken());
     }
 
     @Override

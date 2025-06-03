@@ -24,7 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 public class AuthController {
@@ -45,15 +45,15 @@ public class AuthController {
             }
 
             String appId = requestHeaders.get(Constants.Controller.Header.ORIGIN);
-            UserDao userDao = userService.getUserWithUsername(authRequest.getUsername());
-            if (Objects.isNull(userDao) || !userService.checkUserCredentialsValid(userDao.getPassword(), authRequest.getPassword())) {
+            Optional<UserDao> userDao = userService.getUserWithUsername(authRequest.getUsername());
+            if (userDao.isEmpty() || !userService.checkUserCredentialsValid(userDao.get().getPassword(), authRequest.getPassword())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
-                    userDao.getRealName(),
+                    userDao.get().getRealName(),
                     appId,
                     Env.FFBE_S
             );
@@ -110,9 +110,9 @@ public class AuthController {
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
             String realName = decodedJWT.getClaim(Constants.Token.Claim.X_RNAME).asString();
-            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            Optional<String> dbRefreshToken = authService.getRefreshToken(username, headerToken);
 
-            if (Objects.isNull(dbRefreshToken)) {
+            if (dbRefreshToken.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -123,7 +123,7 @@ public class AuthController {
                 refreshToken = authService.generateToken(Token.Type.RT, username, realName, applicationId, Env.FFBE_S);
                 authService.saveRefreshToken(username, refreshToken);
             } else {
-                refreshToken = dbRefreshToken;
+                refreshToken = dbRefreshToken.get();
             }
 
             return ResponseEntity.ok()

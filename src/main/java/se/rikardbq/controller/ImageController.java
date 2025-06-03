@@ -20,6 +20,7 @@ import se.rikardbq.util.Token;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 public class ImageController {
@@ -47,18 +48,18 @@ public class ImageController {
             String headerToken = authService.getHeaderToken(requestHeaders);
             DecodedJWT decodedJWT = authService.getDecodedToken(headerToken, Token.Type.RT, Env.FFBE_S);
             String username = decodedJWT.getClaim(Constants.Token.Claim.X_UNAME).asString();
-            String dbRefreshToken = authService.getRefreshToken(username, headerToken);
-            UserDao userDao = userService.getUserWithUsername(username);
+            Optional<String> dbRefreshToken = authService.getRefreshToken(username, headerToken);
+            Optional<UserDao> userDao = userService.getUserWithUsername(username);
 
-            if (Objects.isNull(dbRefreshToken) || Objects.isNull(userDao)) {
+            if (dbRefreshToken.isEmpty() || userDao.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            Image image = imageService.getImageWithName(imageName);
+            Optional<Image> image = imageService.getImageWithName(imageName);
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(image);
+                    .body(image.orElse(null));
         } catch (SerfConnectorException e) {
             throw new RuntimeException(e);
         }

@@ -7,6 +7,7 @@ import se.rikardbq.models.Image;
 import se.rikardbq.models.MutationResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class ImageService implements IImageService<Image> {
@@ -30,13 +31,13 @@ public class ImageService implements IImageService<Image> {
     }
 
     @Override
-    public Image getImageWithName(String imageName) throws SerfConnectorException {
+    public Optional<Image> getImageWithName(String imageName) throws SerfConnectorException {
         List<Image> images = databaseService.query(Image.class, "SELECT name, width, height, base64 FROM images WHERE name = ?;", imageName);
         if (images.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
-        return images.getFirst();
+        return Optional.of(images.getFirst());
     }
 
     @Override
