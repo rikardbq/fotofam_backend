@@ -19,6 +19,7 @@ import se.rikardbq.util.Constants;
 import se.rikardbq.util.Env;
 import se.rikardbq.util.Token;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -112,7 +113,7 @@ public class PostController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(lastRowId);
-        } catch (JWTVerificationException | SerfConnectorException e) {
+        } catch (JWTVerificationException | SerfConnectorException | IOException e) {
             if (e instanceof JWTVerificationException) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }

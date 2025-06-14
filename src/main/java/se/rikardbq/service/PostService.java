@@ -1,5 +1,6 @@
 package se.rikardbq.service;
 
+import io.trbl.blurhash.BlurHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.rikardbq.exception.SerfConnectorException;
@@ -8,7 +9,13 @@ import se.rikardbq.models.MutationResponse;
 import se.rikardbq.models.Post;
 import se.rikardbq.models.request.CreatePostRequest;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -44,19 +51,23 @@ public class PostService implements IPostService<CreatePostRequest, Post> {
     }
 
     @Override
-    public long insertPost(CreatePostRequest createPostRequest, int userId) throws SerfConnectorException {
+    public long insertPost(CreatePostRequest createPostRequest, int userId) throws SerfConnectorException, IOException {
         Image image = createPostRequest.getImage();
         Post post = createPostRequest.getPost();
         long now = Instant.now().getEpochSecond();
 
+        byte[] imageB64Bytes = Base64.getDecoder().decode(image.getBase64().split(",")[1]);
+        String imageBlurHash = BlurHash.encode(this.resizeImage(imageB64Bytes, 20), 4, 3);
+
         MutationResponse response = databaseService.mutate("""
-                        INSERT INTO images(name, width, height, base64, user_id, created_at) VALUES(?, ?, ?, ?, ?, ?);
+                        INSERT INTO images(name, width, height, base64, blur_hash, user_id, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);
                         INSERT INTO posts(image_name, description, user_id, created_at) VALUES(?, ?, ?, ?);
                         """,
                 image.getName(),
                 image.getWidth(),
                 image.getHeight(),
                 image.getBase64(),
+                imageBlurHash,
                 userId,
                 now,
                 image.getName(),
@@ -66,6 +77,19 @@ public class PostService implements IPostService<CreatePostRequest, Post> {
         );
 
         return response.getLastInsertRowId();
+    }
+
+    private BufferedImage resizeImage(byte[] imageBytes, int divisions) throws IOException {
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        int width = image.getWidth() / divisions;
+        int height = image.getHeight() / divisions;
+        java.awt.Image tmp = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = resized.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        return resized;
     }
 }
 
