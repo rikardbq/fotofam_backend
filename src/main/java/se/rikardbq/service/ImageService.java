@@ -32,7 +32,7 @@ public class ImageService implements IImageService<Image> {
 
     @Override
     public Optional<Image> getImageWithName(String imageName) throws SerfConnectorException {
-        List<Image> images = databaseService.query(Image.class, "SELECT name, width, height, base64, blur_hash FROM images WHERE name = ?;", imageName);
+        List<Image> images = databaseService.query(Image.class, "SELECT name, width, height, base64 FROM images WHERE name = ?;", imageName);
         if (images.isEmpty()) {
             return Optional.empty();
         }

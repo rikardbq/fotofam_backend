@@ -1,0 +1,1 @@
+ALTER TABLE posts ADD COLUMN blur_hash TEXT;

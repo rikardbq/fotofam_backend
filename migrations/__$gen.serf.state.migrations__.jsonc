@@ -5,4 +5,4 @@
 * Changing this file may lead to inconsistent state
 * between your application migrations and your database!
 **/
-{"__applied_migrations__":["1__add_users_table","2__add_tokens_table","3__add_images_table","4__add_posts_table","5__add_images_col_blur_hash"]}
+{"__applied_migrations__":["1__add_users_table","2__add_tokens_table","3__add_images_table","4__add_posts_table","5__add_images_col_blur_hash","6__remove_images_col_blur_hash","7__add_posts_col_blur_hash","8__rename_posts_col_blur_hash"]}

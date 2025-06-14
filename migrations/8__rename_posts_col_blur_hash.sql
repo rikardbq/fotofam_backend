@@ -1,0 +1,1 @@
+ALTER TABLE posts RENAME COLUMN blur_hash TO blurhash;

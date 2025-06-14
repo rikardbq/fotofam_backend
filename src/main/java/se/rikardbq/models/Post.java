@@ -14,6 +14,7 @@ public class Post implements Serializable {
     private int id;
     @JsonProperty("image_name")
     private String imageName;
+    private String blurhash;
     private String description;
     @JsonProperty("created_at")
     private long createdAt;
@@ -39,11 +40,27 @@ public class Post implements Serializable {
         this.imageName = imageName;
     }
 
+    public String getBlurhash() {
+        return blurhash;
+    }
+
+    public void setBlurhash(String blurhash) {
+        this.blurhash = blurhash;
+    }
+
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 }

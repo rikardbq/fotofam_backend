@@ -1,7 +1,6 @@
 package se.rikardbq.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -16,8 +15,6 @@ public class Image implements Serializable {
     private int width;
     private int height;
     private String base64;
-    @JsonProperty("blur_hash")
-    private String blurHash;
 
     public Image() {
     }
@@ -60,13 +57,5 @@ public class Image implements Serializable {
 
     public void setBase64(String base64) {
         this.base64 = base64;
-    }
-
-    public String getBlurHash() {
-        return blurHash;
-    }
-
-    public void setBlurHash(String blurHash) {
-        this.blurHash = blurHash;
     }
 }
