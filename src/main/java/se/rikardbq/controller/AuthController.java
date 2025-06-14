@@ -45,15 +45,15 @@ public class AuthController {
             }
 
             String appId = requestHeaders.get(Constants.Controller.Header.ORIGIN);
-            Optional<UserDao> userDao = userService.getUserWithUsername(authRequest.getUsername());
-            if (userDao.isEmpty() || !userService.checkUserCredentialsValid(userDao.get().getPassword(), authRequest.getPassword())) {
+            Optional<UserDao> dbUser = userService.getUserWithUsername(authRequest.getUsername());
+            if (dbUser.isEmpty() || !userService.checkUserCredentialsValid(dbUser.get().getPassword(), authRequest.getPassword())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             String accessToken = authService.generateToken(
                     Token.Type.AT,
                     authRequest.getUsername(),
-                    userDao.get().getRealName(),
+                    dbUser.get().getRealName(),
                     appId,
                     Env.FFBE_S
             );
